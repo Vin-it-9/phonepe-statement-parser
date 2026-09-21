@@ -1,0 +1,160 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.statement</groupId>
+    <artifactId>bankstatement</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.8</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>shade</goal></goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>org.phonepe.PhonePeParser</mainClass>
+                                </transformer>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <execution>
+                        <id>generate-aot-cache</id>
+                        <phase>package</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>${java.home}/bin/java</executable>
+                            <arguments>
+                                <argument>-XX:AOTCacheOutput=${project.build.directory}/phonepe.aot</argument>
+                                <argument>-XX:+UseCompactObjectHeaders</argument>
+                                <argument>-XX:+UseParallelGC</argument>
+                                <argument>-Xms1G</argument>
+                                <argument>-Xmx1G</argument>
+                                <argument>-XX:+AlwaysPreTouch</argument>
+                                <argument>-jar</argument>
+                                <argument>${project.build.directory}/${project.build.finalName}.jar</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>create-launchers</id>
+                        <phase>package</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <echo file="${project.build.directory}/phonepe-parser.bat"><![CDATA[@echo off
+java -XX:AOTCache="%~dp0phonepe.aot" -XX:+UseCompactObjectHeaders -jar "%~dp0${project.build.finalName}.jar" %*
+]]></echo>
+                                <echo file="${project.build.directory}/phonepe-parser"><![CDATA[#!/bin/bash
+java -XX:AOTCache="$(dirname "$0")/phonepe.aot" -XX:+UseCompactObjectHeaders -jar "$(dirname "$0")/${project.build.finalName}.jar" "$@"
+]]></echo>
+                                <chmod file="${project.build.directory}/phonepe-parser" perm="a+x"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <version>0.10.3</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <mainClass>org.phonepe.PhonePeParser</mainClass>
+                    <imageName>phonepe-parser</imageName>
+                    <buildArgs>
+                        <arg>-O3</arg>
+                        <arg>-R:+UnlockExperimentalVMOptions</arg>
+                        <arg>-R:+UseCompactObjectHeaders</arg>
+                        <arg>-R:+AlwaysPreTouch</arg>
+                        <arg>--gc=serial</arg>
+                    </buildArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+
+
+    </build>
+
+    <profiles>
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>0.10.3</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <mainClass>org.phonepe.PhonePeParser</mainClass>
+                            <imageName>phonepe-parser</imageName>
+                            <buildArgs>
+                                <arg>-O3</arg>
+                                <arg>--gc=serial</arg>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>
