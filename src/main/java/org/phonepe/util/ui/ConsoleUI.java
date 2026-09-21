@@ -105,7 +105,7 @@ public final class ConsoleUI {
 
         lastProgressNanos = now;
 
-        if (transactionBuffer.length() > 0) {
+        if (!transactionBuffer.isEmpty()) {
             flushTransactions();
         }
 

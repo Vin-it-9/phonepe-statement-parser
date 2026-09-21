@@ -30,10 +30,6 @@ public final class PendingTransaction {
         return direction;
     }
 
-    public String getOriginalLine() {
-        return originalLine;
-    }
-
     public boolean isTarget() {
         return target;
     }

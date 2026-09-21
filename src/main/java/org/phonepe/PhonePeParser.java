@@ -25,7 +25,7 @@ public final class PhonePeParser {
     private PhonePeParser() {
     }
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
 
         try {
             System.setOut(new PrintStream(new FileOutputStream(java.io.FileDescriptor.out), true, StandardCharsets.UTF_8));
