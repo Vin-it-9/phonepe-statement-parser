@@ -4,7 +4,6 @@ public final class PendingTransaction {
 
     private final String date;
     private final Direction direction;
-    private final String originalLine;
     private final boolean target;
 
     private long amountPaise = -1;
@@ -13,12 +12,10 @@ public final class PendingTransaction {
     public PendingTransaction(
             String date,
             Direction direction,
-            String originalLine,
             boolean target
     ) {
         this.date = date;
         this.direction = direction;
-        this.originalLine = originalLine;
         this.target = target;
     }
 

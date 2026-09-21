@@ -15,7 +15,6 @@ public final class ScannerEngine {
     private static final char[] CREDIT = "credit".toCharArray();
     private static final char[] DEBIT = "debit".toCharArray();
 
-    private final String targetName;
     private final char[] targetLower;
     private final ConsoleUI ui;
     private final Totals totals = new Totals();
@@ -27,7 +26,6 @@ public final class ScannerEngine {
     private boolean targetFound;
 
     public ScannerEngine(String targetName, ConsoleUI ui) {
-        this.targetName = targetName;
         this.targetLower = targetName.toLowerCase(Locale.ROOT).toCharArray();
         this.ui = ui;
     }
@@ -57,7 +55,7 @@ public final class ScannerEngine {
             }
 
             final Direction direction = resolveDirection(creditPosition, debitPosition);
-            current = new PendingTransaction(header.date(), direction, line, targetFound);
+            current = new PendingTransaction(header.date(), direction, targetFound);
 
             final long amount = TransactionParser.extractAmountAfterINR(part);
             if (amount >= 0) {
